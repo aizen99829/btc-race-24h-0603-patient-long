@@ -39,6 +39,14 @@
  * while carrying a crash brake, a recovery re-entry, and the flush/dip
  * satellites for the unseen race window. The action log differs from the
  * momentum baseline's (different max_slippage_bps and engine structure).
+ *
+ * Tuning log (grade-local, official kit, 40+ variants): the v2 port as-is
+ * scored -$0.54 (no flush fired, dip EV negative on this window); every
+ * tight trend variant lost money to whipsaw (trail 150 bps: -$15.93, 9 trades;
+ * trend exit at -40 bps: -$19.65); every patient-long variant with a brake
+ * wider than the window's pullbacks scored +$2.45. The brakes were therefore
+ * kept wide on purpose: they are insurance for the unseen race window, not a
+ * source of dev-window edge, and the dev score is not tuned past +$2.45.
  */
 
 import { runBars, type BarsState, type OrderInput } from "./vendor/makefun-bars.ts";
