@@ -17,12 +17,17 @@
  * - Stage A (take-profit): once the unrealised gain vs the average entry
  *   reaches +65 bps, sell half the position. This banks a slice-local gain
  *   before a choppy tape can take it back.
- * - Stage B (trailing stop): the remaining half exits only once the peak
+ * - Stage B (trailing stop): the remaining half exits once the peak
  *   sits at least +120 bps above the entry AND the price has given back
  *   40 bps from that peak. The give-back (40) is smaller than the arm
- *   (120), so the trail can only lock in a profit: exit >= entry x 1.012
- *   x 0.996 = entry x 1.008 before fees (independent review finding #1 on
- *   v3, where trail 250 > arm 200 turned a +200 bps run into a loss).
+ *   (120), so in ordinary one-minute moves the exit lands above the
+ *   entry (exit >= entry x 1.012 x 0.996 = entry x 1.008 before fees).
+ *   Formally the give-back is a lower bound, not an exact value: a
+ *   single-bar plunge of more than ~3.9% from the peak could in
+ *   principle exit below the entry; the hard stop bounds that case at
+ *   -200 bps. (Independent review finding #1 on v3, where trail 250 >
+ *   arm 200 turned a +200 bps run into a loss, is fixed by keeping
+ *   give-back < arm.)
  * - Hard stop: sell everything at -200 bps vs the average entry. Wide
  *   on purpose: tighter stops (60-100 bps) were measured to fire on the
  *   dev window's early chop and destroy the full-window result.
@@ -100,7 +105,11 @@ function divFloor(a: bigint, b: bigint): bigint {
   return q;
 }
 
-/** Average entry price implied by the account's cost basis (fees included). */
+/**
+ * Average entry price implied by the account's cost basis (fees included).
+ * The scales are the hello's for CBBTC in this competition (qty_scale 8,
+ * price_scale 5, quote_scale 6): cost * 10^(8+5) / (qty * 10^6).
+ */
 function avgEntry(cost: bigint, qty: bigint): bigint | null {
   if (qty <= 0n || cost <= 0n) return null;
   return divFloor(cost * 10n ** 13n, qty * 10n ** 6n);
